@@ -1,0 +1,15 @@
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\bin\Debug\net10.0\TimeIsNow.Application.deps.json
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\bin\Debug\net10.0\TimeIsNow.Application.dll
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\bin\Debug\net10.0\TimeIsNow.Application.pdb
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\bin\Debug\net10.0\TimeIsNow.Domain.dll
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\bin\Debug\net10.0\TimeIsNow.Domain.pdb
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\TimeIsNow.Application.csproj.AssemblyReference.cache
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\TimeIsNow.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\TimeIsNow.Application.AssemblyInfoInputs.cache
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\TimeIsNow.Application.AssemblyInfo.cs
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\TimeIsNow.Application.csproj.CoreCompileInputs.cache
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\TimeIsNo.11EBF161.Up2Date
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\TimeIsNow.Application.dll
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\refint\TimeIsNow.Application.dll
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\TimeIsNow.Application.pdb
+C:\Sushant\MyProjects\project_timeisnow\src\TimeIsNow.Application\obj\Debug\net10.0\ref\TimeIsNow.Application.dll

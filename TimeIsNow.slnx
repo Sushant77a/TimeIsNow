@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TimeIsNow.API/TimeIsNow.API.csproj" />
+    <Project Path="src/TimeIsNow.Application/TimeIsNow.Application.csproj" />
+    <Project Path="src/TimeIsNow.Domain/TimeIsNow.Domain.csproj" />
+    <Project Path="src/TimeIsNow.Infrastructure/TimeIsNow.Infrastructure.csproj" />
+  </Folder>
+</Solution>
