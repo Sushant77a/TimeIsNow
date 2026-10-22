@@ -25,6 +25,9 @@ public class TimeIsNowDbContext(
     public DbSet<Goal> Goals => Set<Goal>();
     public DbSet<Habit> Habits => Set<Habit>();
     public DbSet<HabitLog> HabitLogs => Set<HabitLog>();
+    public DbSet<Practice> Practices => Set<Practice>();
+    public DbSet<PracticeSession> PracticeSessions => Set<PracticeSession>();
+    public DbSet<PracticeLog> PracticeLogs => Set<PracticeLog>();
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<Note> Notes => Set<Note>();
     public DbSet<NoteTag> NoteTags => Set<NoteTag>();
@@ -218,6 +221,42 @@ public class TimeIsNowDbContext(
 
             e.HasOne(x => x.Habit).WithMany(h => h.Logs)
                 .HasForeignKey(x => x.HabitId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Practice>(e =>
+        {
+            e.ToTable("Practice");
+            e.Property(x => x.Title).HasMaxLength(200).IsRequired();
+            e.Property(x => x.PlanSource).HasMaxLength(20).IsRequired();
+            e.HasIndex(x => new { x.CategoryId, x.Status });
+            ConfigureBase(e);
+            ConfigureCategoryRef(e, c => c.Practices);
+        });
+
+        modelBuilder.Entity<PracticeSession>(e =>
+        {
+            e.ToTable("PracticeSession");
+            e.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            e.Property(x => x.TimeOfDay).HasMaxLength(30);
+            e.Property(x => x.Instructions).IsRequired();
+            e.HasIndex(x => new { x.PracticeId, x.Order }).IsUnique();
+            ConfigureBase(e);
+
+            e.HasOne(x => x.Practice).WithMany(p => p.Sessions)
+                .HasForeignKey(x => x.PracticeId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PracticeLog>(e =>
+        {
+            e.ToTable("PracticeLog");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.HasIndex(x => new { x.PracticeId, x.Date, x.SessionOrder }).IsUnique();
+            e.HasIndex(x => x.UserId);
+            e.Property(x => x.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            e.HasOne(x => x.Practice).WithMany(p => p.Logs)
+                .HasForeignKey(x => x.PracticeId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Tag>(e =>

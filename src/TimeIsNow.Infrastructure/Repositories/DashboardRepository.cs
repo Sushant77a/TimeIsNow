@@ -13,6 +13,7 @@ public sealed class DashboardRepository(TimeIsNowDbContext context) : IDashboard
     private sealed record ScheduleRow(int Id, int CategoryId, string CategoryName, string Title, DateTime ScheduledAt, DateTime? EndAt, ScheduleStatus Status);
     private sealed record EntryRow(int Id, int CategoryId, string CategoryName, string Content, int? DurationMinutes);
     private sealed record HabitRow(int Id, int CategoryId, string Title, HabitFrequency Frequency, bool IsLogged);
+    private sealed record PracticeRow(int Id, int CategoryId, string Title, int SessionsPerDay, DateOnly StartDate, int DurationDays, int CompletedCount);
 
     public async Task<TodayResponse> GetTodayAsync(DateOnly date, CancellationToken cancellationToken = default)
     {
@@ -56,6 +57,19 @@ public sealed class DashboardRepository(TimeIsNowDbContext context) : IDashboard
                 habit.Title,
                 habit.Frequency,
                 habit.Logs.Any(log => log.Date == date && log.IsCompleted)))
+            .ToListAsync(cancellationToken);
+
+        var practices = await context.Practices
+            .Where(practice => !practice.IsDeleted && practice.Status == PracticeStatus.Active)
+            .OrderBy(practice => practice.Title)
+            .Select(practice => new PracticeRow(
+                practice.Id,
+                practice.CategoryId,
+                practice.Title,
+                practice.SessionsPerDay,
+                practice.StartDate,
+                practice.DurationDays,
+                practice.Logs.Count(log => log.Date == date && log.IsCompleted)))
             .ToListAsync(cancellationToken);
 
         return new TodayResponse
@@ -104,6 +118,19 @@ public sealed class DashboardRepository(TimeIsNowDbContext context) : IDashboard
                 Title = habit.Title,
                 Frequency = (HabitFrequencyDto)habit.Frequency,
                 IsLogged = habit.IsLogged,
+            })],
+            PracticesToday = [.. practices.Select(practice =>
+            {
+                var dayNumber = Math.Clamp((date.DayNumber - practice.StartDate.DayNumber) + 1, 0, practice.DurationDays);
+                return new TodayPracticeDto
+                {
+                    PracticeId = practice.Id,
+                    CategoryId = practice.CategoryId,
+                    Title = practice.Title,
+                    SessionsPerDay = practice.SessionsPerDay,
+                    CompletedCount = practice.CompletedCount,
+                    DayNumber = dayNumber,
+                };
             })],
         };
     }

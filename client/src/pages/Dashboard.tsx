@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { dashboardApi, habitsApi } from '../api/resources'
+import { dashboardApi, habitsApi, practicesApi } from '../api/resources'
 import { useAsync } from '../hooks/useAsync'
 import { Badge, EmptyState, ErrorBanner, PageHeader, Spinner, cardClass } from '../components/ui'
 import {
@@ -192,6 +192,15 @@ export default function Dashboard() {
     reload()
   }
 
+  async function togglePractice(practiceId: number, sessionOrder: number, completed: boolean) {
+    await practicesApi.upsertLog(practiceId, {
+      date: new Date().toISOString().slice(0, 10),
+      sessionOrder,
+      isCompleted: !completed,
+    })
+    reload()
+  }
+
   return (
     <div>
       <PageHeader
@@ -269,6 +278,52 @@ export default function Dashboard() {
                   </span>
                   <Badge text={habit.frequency} />
                 </label>
+              ))
+            )}
+          </Card>
+
+          <Card
+            title={`Practices (${today.practicesToday.filter((p) => p.completedCount >= p.sessionsPerDay).length}/${today.practicesToday.length})`}
+            icon={Sparkles}
+            action={
+              <button
+                onClick={() => navigate('/practices')}
+                className="text-xs font-medium text-accent-400 hover:text-accent-300"
+              >
+                All practices
+              </button>
+            }
+          >
+            {today.practicesToday.length === 0 ? (
+              <p className="text-sm text-gray-400">No active practices.</p>
+            ) : (
+              today.practicesToday.map((practice) => (
+                <div key={practice.practiceId} className="mb-2" data-testid="dashboard-practice">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm text-gray-800">{practice.title}</span>
+                    <span className="text-xs text-gray-500">
+                      {practice.completedCount}/{practice.sessionsPerDay} today
+                    </span>
+                  </div>
+                  <div className="mt-1 flex gap-1.5">
+                    {Array.from({ length: practice.sessionsPerDay }, (_, i) => i + 1).map((order) => {
+                      const done = order <= practice.completedCount
+                      return (
+                        <button
+                          key={order}
+                          data-testid="dashboard-practice-session"
+                          onClick={() => togglePractice(practice.practiceId, order, done)}
+                          title={`Session ${order}`}
+                          className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold transition ${
+                            done ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                          }`}
+                        >
+                          {done ? <Check size={11} /> : order}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               ))
             )}
           </Card>

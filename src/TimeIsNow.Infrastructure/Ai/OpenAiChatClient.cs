@@ -24,7 +24,7 @@ public sealed class OpenAiChatClient(AiOptions options) : IAiChatClient
         var payload = new ChatRequest
         {
             Model = model,
-            MaxTokens = options.MaxTokens > 0 ? options.MaxTokens : null,
+            MaxTokens = request.MaxTokens ?? (options.MaxTokens > 0 ? options.MaxTokens : null),
             Messages =
             [
                 new ChatMessage { Role = "system", Content = request.SystemPrompt },

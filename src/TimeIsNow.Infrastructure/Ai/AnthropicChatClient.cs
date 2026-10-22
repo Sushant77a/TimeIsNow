@@ -25,7 +25,7 @@ public sealed class AnthropicChatClient(AiOptions options) : IAiChatClient
         var payload = new MessagesRequest
         {
             Model = model,
-            MaxTokens = options.MaxTokens > 0 ? options.MaxTokens : 1024,
+            MaxTokens = request.MaxTokens ?? (options.MaxTokens > 0 ? options.MaxTokens : 1024),
             System = request.SystemPrompt,
             Messages = [new UserMessage { Role = "user", Content = request.UserPrompt }],
         };

@@ -7,6 +7,7 @@ using ModelContextProtocol.Server;
 using TimeIsNow.Application.Common.Exceptions;
 using TimeIsNow.Application.Features.Habits;
 using TimeIsNow.Application.Features.Journal;
+using TimeIsNow.Application.Features.Practices;
 using TimeIsNow.Application.Features.Todos;
 using TimeIsNow.Application.Interfaces.Services;
 using TimeIsNow.Domain.Enums;
@@ -19,6 +20,7 @@ public sealed class TimeIsNowMcpTools(
     IWeeklyBriefingService briefingService,
     ITodosService todosService,
     IHabitsService habitsService,
+    IPracticesService practicesService,
     IJournalService journalService,
     ICategoriesService categoriesService)
 {
@@ -189,6 +191,54 @@ public sealed class TimeIsNowMcpTools(
                 Energy = (byte?)energy,
             };
             return await journalService.CreateAsync(request, cancellationToken);
+        });
+    }
+
+    [McpServerTool(Name = "list_practices")]
+    [Description("Lists your practice plans (for example chakra balancing) with their sessions, today's progress, streaks, and completion rate. Use a practice ID with log_practice.")]
+    public async Task<string> ListPractices(
+        [Description("active (default), paused, completed, abandoned, or all.")] string status = "active",
+        [Description("Only practices in this category ID. Omit for all categories.")] int? categoryId = null,
+        CancellationToken cancellationToken = default)
+    {
+        return await ExecuteAsync(() =>
+        {
+            var query = new PracticeListQuery
+            {
+                CategoryId = categoryId,
+                Status = status.Equals("all", StringComparison.OrdinalIgnoreCase)
+                    ? null
+                    : ParseEnum<PracticeStatus>(status, nameof(status)),
+            };
+            return practicesService.GetListAsync(query, cancellationToken);
+        });
+    }
+
+    [McpServerTool(Name = "log_practice")]
+    [Description("Records (or clears) one practice session for a date. Idempotent per practice+date+session: calling twice just updates the entry.")]
+    public async Task<string> LogPractice(
+        [Description("Practice ID from list_practices.")] int practiceId,
+        [Description("Session number within the day, starting at 1.")] int sessionOrder,
+        [Description("Date in yyyy-MM-dd. Defaults to today.")] string? date = null,
+        [Description("true = completed (default), false = clear the entry.")] bool completed = true,
+        [Description("Optional note, max 500 characters.")] string? note = null,
+        CancellationToken cancellationToken = default)
+    {
+        return await ExecuteAsync(() =>
+        {
+            if (sessionOrder < 1)
+                throw new ArgumentException("sessionOrder must be 1 or greater.", nameof(sessionOrder));
+
+            var request = new PracticeLogRequest
+            {
+                Date = ParseDate(
+                    date ?? DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd"),
+                    nameof(date)),
+                SessionOrder = sessionOrder,
+                IsCompleted = completed,
+                Note = note,
+            };
+            return practicesService.UpsertLogAsync(practiceId, request, cancellationToken);
         });
     }
 

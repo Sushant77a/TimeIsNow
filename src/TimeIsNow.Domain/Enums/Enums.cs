@@ -42,6 +42,14 @@ public enum HabitFrequency : byte
     Weekly = 1
 }
 
+public enum PracticeStatus : byte
+{
+    Active = 0,
+    Paused = 1,
+    Completed = 2,
+    Abandoned = 3
+}
+
 public enum ScopeKind : byte
 {
     All = 0,
@@ -59,5 +67,6 @@ public enum ModuleKey : byte
     Finance = 6,
     Goals = 7,
     Notes = 8,
-    Settings = 9
+    Settings = 9,
+    Practices = 10
 }

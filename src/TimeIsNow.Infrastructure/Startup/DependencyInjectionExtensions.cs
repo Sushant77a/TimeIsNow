@@ -40,6 +40,7 @@ public static class DependencyInjectionExtensions
         services.AddScoped<IFinanceRepository, FinanceRepository>();
         services.AddScoped<IGoalRepository, GoalRepository>();
         services.AddScoped<IHabitRepository, HabitRepository>();
+        services.AddScoped<IPracticeRepository, PracticeRepository>();
         services.AddScoped<INoteRepository, NoteRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IDashboardRepository, DashboardRepository>();
@@ -54,10 +55,12 @@ public static class DependencyInjectionExtensions
             else
                 services.AddScoped<IAiChatClient, OpenAiChatClient>();
             services.AddScoped<INarrativeService, AiNarrativeService>();
+            services.AddScoped<IPracticePlanGenerator, AiPlanGenerator>();
         }
         else
         {
             services.AddScoped<INarrativeService, TemplateNarrativeService>();
+            services.AddScoped<IPracticePlanGenerator, TemplatePlanGenerator>();
         }
 
         return services;

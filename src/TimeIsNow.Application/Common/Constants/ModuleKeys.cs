@@ -16,6 +16,7 @@ public static class ModuleKeys
         [ModuleKey.Goals] = "goals",
         [ModuleKey.Notes] = "notes",
         [ModuleKey.Settings] = "settings",
+        [ModuleKey.Practices] = "practices",
     };
 
     private static readonly Dictionary<string, ModuleKey> Values =

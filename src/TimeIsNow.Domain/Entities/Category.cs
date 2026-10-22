@@ -19,5 +19,6 @@ public class Category : BaseEntity
     public ICollection<Goal> Goals { get; set; } = new List<Goal>();
     public ICollection<Habit> Habits { get; set; } = new List<Habit>();
     public ICollection<Note> Notes { get; set; } = new List<Note>();
+    public ICollection<Practice> Practices { get; set; } = new List<Practice>();
     public ICollection<CategoryModule> Modules { get; set; } = new List<CategoryModule>();
 }

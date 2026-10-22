@@ -550,6 +550,166 @@ namespace TimeIsNow.Infrastructure.Migrations
                     b.ToTable("NoteTag", (string)null);
                 });
 
+            modelBuilder.Entity("TimeIsNow.Domain.Entities.Practice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Overview")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PlanSource")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("SessionsPerDay")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CategoryId", "Status");
+
+                    b.ToTable("Practice", (string)null);
+                });
+
+            modelBuilder.Entity("TimeIsNow.Domain.Entities.PracticeLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<int>("PracticeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SessionOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PracticeId", "Date", "SessionOrder")
+                        .IsUnique();
+
+                    b.ToTable("PracticeLog", (string)null);
+                });
+
+            modelBuilder.Entity("TimeIsNow.Domain.Entities.PracticeSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Instructions")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PracticeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TimeOfDay")
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("datetime(6)")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDeleted");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PracticeId", "Order")
+                        .IsUnique();
+
+                    b.ToTable("PracticeSession", (string)null);
+                });
+
             modelBuilder.Entity("TimeIsNow.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -985,6 +1145,39 @@ namespace TimeIsNow.Infrastructure.Migrations
                     b.Navigation("Tag");
                 });
 
+            modelBuilder.Entity("TimeIsNow.Domain.Entities.Practice", b =>
+                {
+                    b.HasOne("TimeIsNow.Domain.Entities.Category", "Category")
+                        .WithMany("Practices")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("TimeIsNow.Domain.Entities.PracticeLog", b =>
+                {
+                    b.HasOne("TimeIsNow.Domain.Entities.Practice", "Practice")
+                        .WithMany("Logs")
+                        .HasForeignKey("PracticeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Practice");
+                });
+
+            modelBuilder.Entity("TimeIsNow.Domain.Entities.PracticeSession", b =>
+                {
+                    b.HasOne("TimeIsNow.Domain.Entities.Practice", "Practice")
+                        .WithMany("Sessions")
+                        .HasForeignKey("PracticeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Practice");
+                });
+
             modelBuilder.Entity("TimeIsNow.Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("TimeIsNow.Domain.Entities.User", "User")
@@ -1067,6 +1260,8 @@ namespace TimeIsNow.Infrastructure.Migrations
 
                     b.Navigation("Notes");
 
+                    b.Navigation("Practices");
+
                     b.Navigation("ScheduleItems");
 
                     b.Navigation("Todos");
@@ -1090,6 +1285,13 @@ namespace TimeIsNow.Infrastructure.Migrations
             modelBuilder.Entity("TimeIsNow.Domain.Entities.Note", b =>
                 {
                     b.Navigation("Tags");
+                });
+
+            modelBuilder.Entity("TimeIsNow.Domain.Entities.Practice", b =>
+                {
+                    b.Navigation("Logs");
+
+                    b.Navigation("Sessions");
                 });
 
             modelBuilder.Entity("TimeIsNow.Domain.Entities.Tag", b =>

@@ -90,6 +90,8 @@ test('mcp exposes tools and answers a call', async ({ playwright, user }) => {
       'log_habit',
       'list_journal_entries',
       'add_journal_entry',
+      'list_practices',
+      'log_practice',
     ]),
   )
 
@@ -104,6 +106,58 @@ test('mcp exposes tools and answers a call', async ({ playwright, user }) => {
   const text = callResult.content.map((c: { text: string }) => c.text).join('')
   expect(text).toContain('MCP test todo')
   expect(text).toContain('"priority":"High"')
+
+  await api.dispose()
+})
+
+test('mcp can list practices and log a practice session', async ({ playwright, user }) => {
+  const api = await playwright.request.newContext()
+  const login = await api.post('http://localhost:5099/api/auth/login', {
+    data: { email: user.email, password: 'Test1234!' },
+  })
+  const accessToken = (await login.json()).data.accessToken
+  const categories = await api.get('http://localhost:5099/api/categories', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  const categoryId = (await categories.json()).data[0].id
+  const created = await api.post('http://localhost:5099/api/practices', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    data: {
+      categoryId,
+      title: 'MCP Chakra Practice',
+      overview: 'Ground and align.',
+      status: 'Active',
+      startDate: new Date().toISOString().slice(0, 10),
+      durationDays: 7,
+      sessions: [{ name: 'Root', instructions: 'Sit tall.' }],
+    },
+  })
+  expect(created.ok()).toBeTruthy()
+  const practiceId = (await created.json()).data.id
+
+  const token = await mcpToken(api, user.email)
+
+  const list = await rpc(api, token, {
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'tools/call',
+    params: { name: 'list_practices', arguments: {} },
+  })
+  const listResult = parseRpc(list.body).find((m) => m.id === 1).result
+  const listText = listResult.content.map((c: { text: string }) => c.text).join('')
+  expect(listText).toContain('MCP Chakra Practice')
+
+  const logged = await rpc(api, token, {
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/call',
+    params: { name: 'log_practice', arguments: { practiceId, sessionOrder: 1 } },
+  })
+  const logResult = parseRpc(logged.body).find((m) => m.id === 2).result
+  expect(logResult.isError ?? false).toBe(false)
+  const logText = logResult.content.map((c: { text: string }) => c.text).join('')
+  expect(logText).toContain('"sessionOrder":1')
+  expect(logText).toContain('"isCompleted":true')
 
   await api.dispose()
 })

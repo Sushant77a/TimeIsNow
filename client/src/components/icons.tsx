@@ -36,6 +36,7 @@ export const navItems: { key: string; to: string; label: string; Icon: LucideIco
   { key: 'dashboard', to: '/', label: 'Dashboard', Icon: LayoutDashboard },
   { key: 'todos', to: '/todos', label: 'Todos', Icon: ListChecks },
   { key: 'habits', to: '/habits', label: 'Habits', Icon: Repeat },
+  { key: 'practices', to: '/practices', label: 'Practices', Icon: Sparkles },
   { key: 'entries', to: '/entries', label: 'Daily Entries', Icon: NotebookPen },
   { key: 'journal', to: '/journal', label: 'Journal', Icon: BookOpen },
   { key: 'schedule', to: '/schedule', label: 'Schedule', Icon: CalendarDays },

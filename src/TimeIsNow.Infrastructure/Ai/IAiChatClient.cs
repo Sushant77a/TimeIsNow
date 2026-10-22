@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace TimeIsNow.Infrastructure.Ai;
 
-public sealed record AiChatRequest(string SystemPrompt, string UserPrompt);
+public sealed record AiChatRequest(string SystemPrompt, string UserPrompt, int? MaxTokens = null);
 
 public interface IAiChatClient
 {

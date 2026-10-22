@@ -1,13 +1,14 @@
 # Time is Now
 
-Time is Now is a personal life dashboard and assistant. It organizes todos, journal entries, schedules, finances, goals, habits, daily entries, and notes by life category such as Personal, Study, Work, or Leisure.
+Time is Now is a personal life dashboard and assistant. It organizes todos, journal entries, schedules, finances, goals, habits, practices, daily entries, and notes by life category such as Personal, Study, Work, or Leisure.
 
 The repository contains a .NET Web API and a React client. It is currently designed for local development.
 
 ## Features
 
 - Multi-user authentication with JWT access tokens and rotating httpOnly refresh cookies
-- Category-scoped life management across todos, journal, schedule, finances, goals, habits, daily entries, and notes
+- Category-scoped life management across todos, journal, schedule, finances, goals, habits, practices, daily entries, and notes
+- Multi-day practice plans: type a goal (e.g. "chakra balancing"), let AI draft a day/session plan, tick sessions off in a daily log, and track streaks on a progress graph
 - MySQL persistence with Entity Framework Core migrations
 - Weekly dashboard briefing with a deterministic template or an optional AI provider
 - Streamable HTTP MCP server at `/mcp`
@@ -117,11 +118,11 @@ dotnet user-secrets set --project src/TimeIsNow.API "Ai:ApiKey" "<your-api-key>"
 dotnet user-secrets set --project src/TimeIsNow.API "Ai:Model" "<model-name>"  # optional
 ```
 
-The application supports Anthropic and OpenAI-compatible providers. For a custom OpenAI-compatible gateway, also set `Ai:BaseUrl`.
+The application supports Anthropic and OpenAI-compatible providers. For a custom OpenAI-compatible gateway, also set `Ai:BaseUrl`. The same key also powers AI-drafted practice plans; without it, plan generation falls back to a deterministic template.
 
 ## MCP integration
 
-The API exposes MCP tools for the authenticated user's data. First sign in, call `POST /api/auth/mcp-token`, and use the returned 30-day token as a bearer token for `/mcp`.
+The API exposes MCP tools for the authenticated user's data (11 tools covering briefings, todos, habits, journal, and practices). First sign in, call `POST /api/auth/mcp-token`, and use the returned 30-day token as a bearer token for `/mcp`.
 
 Example for Claude Code:
 

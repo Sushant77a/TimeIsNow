@@ -18,6 +18,7 @@ Category (Personal | Study | Work | Leisure | custom…)
    ├── Finances         income/expenses per life area (recurring supported)
    ├── Goals            long-term targets with progress
    ├── Habits           daily/weekly habits with per-day logs (streaks)
+   ├── Practices        multi-day plans (AI- or hand-built) with a daily session log + progress graph
    └── Notes            pinned freeform notes with tags
 ```
 
@@ -52,8 +53,8 @@ project_timeisnow/
     │   ├── Security/              ← JwtOptions, JwtTokenService, PasswordHasher (PBKDF2)
     │   └── Startup/               ← AddInfrastructure DI extension
     └── TimeIsNow.API/
-        ├── Controllers/           ← 13 controllers (incl. AuthController)
-        ├── Mcp/                   ← TimeIsNowMcpTools (9 MCP tools at POST /mcp)
+        ├── Controllers/           ← 14 controllers (incl. AuthController, PracticesController)
+        ├── Mcp/                   ← TimeIsNowMcpTools (11 MCP tools at POST /mcp)
         ├── Security/              ← HttpContextCurrentUser (ICurrentUser impl)
         ├── Middlewares/           ← ApiExceptionHandler (exception → envelope)
         ├── Extensions/            ← ModelValidationExtensions, CorsExtensions
@@ -74,7 +75,7 @@ JWT signing key also lives in user secrets:
 dotnet user-secrets set "Jwt:SecretKey" "<random 48-byte base64>"
 ```
 
-### Tables (17)
+### Tables (20)
 
 | Table | Purpose | Key fields |
 |---|---|---|
@@ -90,6 +91,9 @@ dotnet user-secrets set "Jwt:SecretKey" "<random 48-byte base64>"
 | `Goal` | long-term targets | TargetDate, Status (Active/Achieved/Abandoned), ProgressPercent |
 | `Habit` | habit definitions | Frequency (Daily/Weekly), IsActive |
 | `HabitLog` | one row per habit-day | Date, IsCompleted, Note — **unique (HabitId, Date)** |
+| `Practice` | multi-day practice plan definitions | Title, Overview, StartDate, DurationDays, SessionsPerDay, Status (Active/Paused/Completed/Abandoned), PlanSource (`ai`/`template`/`manual`) |
+| `PracticeSession` | one row per session slot in a plan | Order, Name, TimeOfDay, DurationMinutes, Instructions — **unique (PracticeId, Order)** |
+| `PracticeLog` | one row per practice-day-session | Date, SessionOrder, IsCompleted, Note, CompletedAt — **unique (PracticeId, Date, SessionOrder)** |
 | `Tag` | normalized tags (per user) | Name — **unique (UserId, Name)** |
 | `Note` | freeform notes | Title, Content, IsPinned |
 | `NoteTag` / `TodoTag` / `JournalTag` | many-to-many joins | composite PK (entityId, TagId) |
@@ -103,8 +107,8 @@ dotnet user-secrets set "Jwt:SecretKey" "<random 48-byte base64>"
 - **Enums** stored as `tinyint unsigned`, serialized as **strings in JSON** (`"High"`, `"Expense"`).
 - **`DateOnly` columns**: Oracle's provider can't materialize `DateOnly`, so the DbContext converts it to `DateTime` at the provider boundary while keeping the column type `date`.
 - **CHECK constraints**: `Amount > 0`, `Mood/Energy BETWEEN 1 AND 5` (DailyEntry + JournalEntry), `ProgressPercent BETWEEN 0 AND 100`.
-- **Delete behaviors**: Category/Habit/Todo → children cascade; Goal → ScheduleItem is `SET NULL`; tag joins cascade both ways; RefreshToken → User cascades.
-- **Indexes**: all FKs; hot paths `(CategoryId, IsDone)`, `(CategoryId, Date)` (entries/finance), `(CategoryId, ScheduledAt)`, `(HabitId, Date)` unique, `(UserId, Name)` unique on Tag, `UserId` on all owned tables, `IsDeleted` on all soft-deletable tables.
+- **Delete behaviors**: Category/Habit/Todo/Practice → children cascade; Goal → ScheduleItem is `SET NULL`; tag joins cascade both ways; RefreshToken → User cascades.
+- **Indexes**: all FKs; hot paths `(CategoryId, IsDone)`, `(CategoryId, Date)` (entries/finance), `(CategoryId, ScheduledAt)`, `(HabitId, Date)` unique, `(PracticeId, Order)` unique on PracticeSession, `(PracticeId, Date, SessionOrder)` unique on PracticeLog, `(UserId, Name)` unique on Tag, `UserId` on all owned tables, `IsDeleted` on all soft-deletable tables.
 
 ## Authentication
 
@@ -142,7 +146,11 @@ Every response is wrapped in an envelope: `{ message, status, statusCode, data }
 | `/api/habits/logs/{logId}` | DELETE | |
 | `/api/notes` | GET `?categoryId&search&tag&pinned`, GET `/{id}`, POST, PUT `/{id}`, DELETE `/{id}` | tags auto-upsert |
 | `/api/tags` | GET, DELETE `/{id}` | |
-| `/api/dashboard/today` | GET `?date=yyyy-MM-dd` | overdue + due-today todos, today's schedule/entries, habit completion flags |
+| `/api/practices` | GET `?categoryId&status`, GET `/{id}`, POST, PUT `/{id}`, DELETE `/{id}` | multi-day plans; POST/PUT take `sessions[]` (name + instructions, optional timeOfDay/durationMinutes) |
+| `/api/practices/{id}/logs` | GET `?from&to`, POST (upsert by date+session) | one log per (practice, date, sessionOrder) |
+| `/api/practices/logs/{logId}` | DELETE | |
+| `/api/practices/plan` | POST | `{ prompt, categoryId?, startDate?, sessionsPerDay? (1–6), days? }` → AI-drafted (`planSource` `ai`) or template (`template`) `PracticePlanDraft`, not yet saved |
+| `/api/dashboard/today` | GET `?date=yyyy-MM-dd` | overdue + due-today todos, today's schedule/entries, habit completion flags, `practicesToday[]` (per-session completion) |
 | `/api/dashboard/summary` | GET `?year&month` | income/expense/balance, per-category finance, open todos, daily-habit streaks |
 | `/api/dashboard/briefing` | GET `?weekStart=yyyy-MM-dd` | weekly stats + narrative; week runs Monday–Sunday (defaults to the current week) |
 
@@ -156,6 +164,8 @@ Two narrative implementations, chosen at startup:
 
 - **Template (default, no API key)** — `TemplateNarrativeService` renders deterministic sentences from the real numbers. This is what runs out of the box, and it is also the automatic fallback whenever the AI call fails (bad key, wrong model name, network, misconfig), so the briefing never breaks.
 - **AI (any provider)** — enabled the moment `Ai:ApiKey` is set. Claude/Anthropic names go to the native Messages API; everything else goes to an OpenAI-compatible `POST <BaseUrl>/chat/completions`, which covers ChatGPT/OpenAI, Gemini (via Google's official OpenAI-compat endpoint), OpenRouter, Groq, DeepSeek, Mistral, Ollama, LM Studio, and any custom gateway. The response reports what actually ran: `narrativeSource` (`"template"` | `"ai"`) and `narrativeProvider` (the configured `Ai:Provider`).
+
+The same switch drives **practice plan generation** (`POST /api/practices/plan`): with a key, `AiPlanGenerator` asks the model for a strict-JSON day/session plan (stripping code fences, validating the shape, and falling back to the template on any parse/network error); without a key, `TemplatePlanGenerator` produces a deterministic plan. Either way the draft reports its `planSource` (`"ai"` | `"template"`).
 
 | `Ai:*` key | Required | Notes |
 |---|---|---|
@@ -195,7 +205,7 @@ The API also hosts an MCP (Model Context Protocol) server over **Streamable HTTP
 
 `/mcp` sits behind the same JWT bearer policy as the rest of the API (401 without a token), and every tool call runs as the token's user — the existing user-scoped `DbContext` filters mean an MCP client can only ever see its own rows. Because the normal access token expires in 15 minutes (useless for a long-running client), `POST /api/auth/mcp-token` mints a **30-day** token for this purpose. It takes no body; send a normal access token and copy `data.token`.
 
-Tools (9, all `read`/`write` against the same services the REST API uses):
+Tools (11, all `read`/`write` against the same services the REST API uses):
 
 | Tool | Arguments (all optional unless noted) | Purpose |
 | --- | --- | --- |
@@ -208,6 +218,8 @@ Tools (9, all `read`/`write` against the same services the REST API uses):
 | `log_habit` | `habitId` (**required**), `date`, `completed`, `note` | upserts one habit log per (habit, date) |
 | `list_journal_entries` | `from`, `to`, `search` | journal entries, newest first |
 | `add_journal_entry` | `content` (**required**), `categoryId`, `date`, `title`, `mood` (1–5), `energy` (1–5) | creates a journal entry |
+| `list_practices` | `status` (`active` default; `paused\|completed\|abandoned\|all`), `categoryId` | practice plans with sessions, today's progress, streaks, completion rate |
+| `log_practice` | `practiceId` (**required**), `sessionOrder` (**required**), `date`, `completed`, `note` | records/clears one practice session per (practice, date, session) |
 
 `categoryId` is optional on the write tools — omitted, the entry lands in the user's first non-archived category (registration seeds Personal, Study, Work, Leisure). Validation and service failures (empty title, unknown category, 1–5 range) come back as `isError: true` with the real message, so the model can correct itself.
 
@@ -240,8 +252,9 @@ For Claude Desktop, add the same URL/header under `mcpServers` in `claude_deskto
 4. ~~Authentication: JWT + rotating refresh cookie, multi-user scoping~~ ✅
 5. ~~Weekly briefing: weekly stats + template narrative, any AI provider (Claude/ChatGPT/Gemini/OpenAI-compatible) when a key is set~~ ✅
 6. ~~MCP server (`/mcp`, Streamable HTTP): read/write tools for Claude Code and other MCP clients, long-lived tokens~~ ✅
-7. Insights (mood/energy trends, budget summaries)
-8. Polish: reminders/recurrence expansion, export
+7. ~~Practices: AI- or template-drafted multi-day plans, daily session log, streak/progress graph, dashboard card, MCP tools~~ ✅
+8. Insights (mood/energy trends, budget summaries)
+9. Polish: reminders/recurrence expansion, export
 
 ## Commands
 
@@ -300,6 +313,7 @@ Specs live in `client/tests/`:
 | `modules.spec.ts` | Settings toggles, persistence after reload, per-category isolation |
 | `todos.spec.ts` | create / complete / delete, persistence after reload |
 | `briefing.spec.ts` | weekly briefing endpoint contract + Dashboard briefing card |
-| `mcp.spec.ts` | `/mcp` auth (401), tool listing, a live `create_todo` call, error surfacing |
+| `practices.spec.ts` | plan endpoint, practice create/log/streak stats, UI wizard + session logging, Dashboard practices card |
+| `mcp.spec.ts` | `/mcp` auth (401), tool listing, live `create_todo` + `list_practices`/`log_practice` calls, error surfacing |
 
 `fixtures.ts` registers a fresh user against the API per test (email `pw-<ts>-<n>@test.local`, password `Test1234!`) and exposes an `app` fixture that logs in via the UI and waits for the sidebar. Tests reach the app through stable hooks — `data-testid` on `user-email`, `sidebar-nav`, `scope-chip`, `modules-all`, `modules-category`, `module-toggle`, `weekly-briefing`.

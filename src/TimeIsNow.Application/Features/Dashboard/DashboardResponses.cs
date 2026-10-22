@@ -8,6 +8,7 @@ public sealed record TodayResponse
     public List<TodayScheduleDto> ScheduleToday { get; init; } = [];
     public List<TodayEntryDto> EntriesToday { get; init; } = [];
     public List<TodayHabitDto> HabitsToday { get; init; } = [];
+    public List<TodayPracticeDto> PracticesToday { get; init; } = [];
 }
 
 public sealed record TodayTodoDto
@@ -47,6 +48,16 @@ public sealed record TodayHabitDto
     public required string Title { get; init; }
     public HabitFrequencyDto Frequency { get; init; }
     public bool IsLogged { get; init; }
+}
+
+public sealed record TodayPracticeDto
+{
+    public int PracticeId { get; init; }
+    public int CategoryId { get; init; }
+    public required string Title { get; init; }
+    public int SessionsPerDay { get; init; }
+    public int CompletedCount { get; init; }
+    public int DayNumber { get; init; }
 }
 
 public sealed record SummaryResponse

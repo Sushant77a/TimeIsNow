@@ -82,6 +82,20 @@ public static class ApiMessages
     public const string HabitLogDeleted = "Habit log deleted successfully.";
     public const string HabitLogNotFound = "Habit log not found.";
 
+    public const string PracticesFetched = "Practices fetched successfully.";
+    public const string PracticeFetched = "Practice fetched successfully.";
+    public const string PracticeCreated = "Practice created successfully.";
+    public const string PracticeUpdated = "Practice updated successfully.";
+    public const string PracticeDeleted = "Practice deleted successfully.";
+    public const string PracticeNotFound = "Practice not found.";
+    public const string PracticeLogsFetched = "Practice logs fetched successfully.";
+    public const string PracticeLogSaved = "Practice log saved successfully.";
+    public const string PracticeLogDeleted = "Practice log deleted successfully.";
+    public const string PracticeLogNotFound = "Practice log not found.";
+    public const string PracticeSessionsRequired = "A practice needs at least one session.";
+    public const string PracticeSessionOrderInvalid = "Session order is outside this practice's daily sessions.";
+    public const string PracticePlanGenerated = "Practice plan generated successfully.";
+
     public const string NotesFetched = "Notes fetched successfully.";
     public const string NoteFetched = "Note fetched successfully.";
     public const string NoteCreated = "Note created successfully.";

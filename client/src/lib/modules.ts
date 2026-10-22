@@ -1,8 +1,8 @@
-export const DEFAULT_ALL_MODULES = ['dashboard', 'todos', 'habits', 'finance']
+export const DEFAULT_ALL_MODULES = ['dashboard', 'todos', 'habits', 'practices', 'finance']
 
-const DEFAULT_CATEGORY_MODULES = ['dashboard', 'entries', 'schedule', 'goals', 'notes', 'settings']
+const DEFAULT_CATEGORY_MODULES = ['dashboard', 'entries', 'schedule', 'goals', 'practices', 'notes', 'settings']
 
-const PERSONAL_MODULES = ['dashboard', 'entries', 'journal', 'schedule', 'goals', 'notes', 'settings']
+const PERSONAL_MODULES = ['dashboard', 'entries', 'journal', 'schedule', 'goals', 'practices', 'notes', 'settings']
 
 export function defaultModulesForCategory(name: string): string[] {
   if (name.trim().toLowerCase() === 'personal') return PERSONAL_MODULES

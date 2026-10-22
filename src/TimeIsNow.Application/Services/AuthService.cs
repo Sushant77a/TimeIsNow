@@ -198,6 +198,7 @@ public sealed class AuthService(
             Domain.Enums.ModuleKey.Dashboard,
             Domain.Enums.ModuleKey.Todos,
             Domain.Enums.ModuleKey.Habits,
+            Domain.Enums.ModuleKey.Practices,
             Domain.Enums.ModuleKey.Finance,
         };
         var order = 0;
@@ -220,6 +221,7 @@ public sealed class AuthService(
             Domain.Enums.ModuleKey.Journal,
             Domain.Enums.ModuleKey.Schedule,
             Domain.Enums.ModuleKey.Goals,
+            Domain.Enums.ModuleKey.Practices,
             Domain.Enums.ModuleKey.Notes,
             Domain.Enums.ModuleKey.Settings,
         };
@@ -229,6 +231,7 @@ public sealed class AuthService(
             Domain.Enums.ModuleKey.DailyEntries,
             Domain.Enums.ModuleKey.Schedule,
             Domain.Enums.ModuleKey.Goals,
+            Domain.Enums.ModuleKey.Practices,
             Domain.Enums.ModuleKey.Notes,
             Domain.Enums.ModuleKey.Settings,
         };

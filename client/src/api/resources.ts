@@ -11,6 +11,11 @@ import type {
   JournalEntry,
   ModuleSet,
   Note,
+  Practice,
+  PracticeLog,
+  PracticePlanDraft,
+  PracticeStatus,
+  PracticeUpsert,
   Profile,
   ScheduleItem,
   SummaryResponse,
@@ -126,8 +131,30 @@ export const habitsApi = {
   removeLog: (logId: number) => api.delete(`/api/habits/logs/${logId}`),
 }
 
-export const notesApi = {
-  getList: (params: { categoryId?: number; search?: string; tag?: string; pinned?: boolean } = {}) =>
+export const practicesApi = {
+  getList: (params: { categoryId?: number; status?: PracticeStatus } = {}) =>
+    api.get<Practice[]>('/api/practices', params),
+  getById: (id: number) => api.get<Practice>(`/api/practices/${id}`),
+  create: (body: PracticeUpsert) => api.post<Practice>('/api/practices', body),
+  update: (id: number, body: PracticeUpsert) => api.put<Practice>(`/api/practices/${id}`, body),
+  remove: (id: number) => api.delete(`/api/practices/${id}`),
+  getLogs: (practiceId: number, params: { from?: string; to?: string } = {}) =>
+    api.get<PracticeLog[]>(`/api/practices/${practiceId}/logs`, params),
+  upsertLog: (
+    practiceId: number,
+    body: { date: string; sessionOrder: number; isCompleted: boolean; note?: string },
+  ) => api.post<PracticeLog>(`/api/practices/${practiceId}/logs`, body),
+  removeLog: (logId: number) => api.delete(`/api/practices/logs/${logId}`),
+  generatePlan: (body: {
+    prompt: string
+    categoryId?: number
+    startDate?: string
+    sessionsPerDay?: number
+    days?: number
+  }) => api.post<PracticePlanDraft>('/api/practices/plan', body),
+}
+
+export const notesApi = {  getList: (params: { categoryId?: number; search?: string; tag?: string; pinned?: boolean } = {}) =>
     api.get<Note[]>('/api/notes', params),
   getById: (id: number) => api.get<Note>(`/api/notes/${id}`),
   create: (body: Partial<Note>) => api.post<Note>('/api/notes', body),

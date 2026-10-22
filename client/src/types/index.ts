@@ -4,6 +4,7 @@ export type ScheduleStatus = 'Planned' | 'Done' | 'Skipped' | 'Cancelled'
 export type FinanceType = 'Expense' | 'Income'
 export type GoalStatus = 'Active' | 'Achieved' | 'Abandoned'
 export type HabitFrequency = 'Daily' | 'Weekly'
+export type PracticeStatus = 'Active' | 'Paused' | 'Completed' | 'Abandoned'
 
 export interface Category {
   id: number
@@ -134,8 +135,84 @@ export interface HabitLog {
   createdAt: string
 }
 
-export interface Note {
+export interface PracticeSession {
   id: number
+  practiceId: number
+  order: number
+  name: string
+  timeOfDay: string | null
+  durationMinutes: number | null
+  instructions: string
+}
+
+export interface PracticeStats {
+  dayNumber: number
+  todayCompleted: number
+  todayTotal: number
+  totalCompleted: number
+  expectedSessions: number
+  completionRate: number
+  currentStreak: number
+  bestStreak: number
+  lastLogDate: string | null
+}
+
+export interface Practice {
+  id: number
+  categoryId: number
+  title: string
+  overview: string | null
+  startDate: string
+  durationDays: number
+  sessionsPerDay: number
+  status: PracticeStatus
+  planSource: string
+  sessions: PracticeSession[]
+  stats: PracticeStats
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PracticeLog {
+  id: number
+  practiceId: number
+  date: string
+  sessionOrder: number
+  isCompleted: boolean
+  note: string | null
+  completedAt: string | null
+  createdAt: string
+}
+
+export interface PracticePlanSession {
+  name: string
+  timeOfDay: string | null
+  durationMinutes: number | null
+  instructions: string
+}
+
+export interface PracticePlanDraft {
+  title: string
+  overview: string | null
+  startDate: string
+  sessionsPerDay: number
+  durationDays: number
+  sessions: PracticePlanSession[]
+  source: 'ai' | 'template'
+  provider: string | null
+}
+
+export interface PracticeUpsert {
+  categoryId: number
+  title: string
+  overview?: string | null
+  startDate: string
+  durationDays: number
+  status?: PracticeStatus
+  sessions: { name: string; timeOfDay?: string | null; durationMinutes?: number | null; instructions: string }[]
+}
+
+export interface Note {  id: number
   categoryId: number
   title: string
   content: string
@@ -186,6 +263,15 @@ export interface TodayHabit {
   isLogged: boolean
 }
 
+export interface TodayPractice {
+  practiceId: number
+  categoryId: number
+  title: string
+  sessionsPerDay: number
+  completedCount: number
+  dayNumber: number
+}
+
 export interface TodayResponse {
   date: string
   overdueTodos: TodayTodo[]
@@ -193,6 +279,7 @@ export interface TodayResponse {
   scheduleToday: TodaySchedule[]
   entriesToday: TodayEntry[]
   habitsToday: TodayHabit[]
+  practicesToday: TodayPractice[]
 }
 
 export interface SummaryCategoryFinance {

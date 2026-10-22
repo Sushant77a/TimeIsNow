@@ -7,6 +7,7 @@ import { CategoryProvider } from './context/CategoryContext'
 import Dashboard from './pages/Dashboard'
 import Todos from './pages/Todos'
 import Habits from './pages/Habits'
+import Practices from './pages/Practices'
 import DailyEntries from './pages/DailyEntries'
 import Journal from './pages/Journal'
 import Schedule from './pages/Schedule'
@@ -90,6 +91,7 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="todos" element={<Todos />} />
               <Route path="habits" element={<Habits />} />
+              <Route path="practices" element={<Practices />} />
               <Route path="entries" element={<DailyEntries />} />
               <Route path="journal" element={<Journal />} />
               <Route path="schedule" element={<Schedule />} />
