@@ -24,6 +24,7 @@ blob-report/
 # Local runtime files
 logs/
 .run/
+.sisyphus/
 
 # Local secrets and environment files
 .env
