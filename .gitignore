@@ -31,6 +31,8 @@ logs/
 .env.*
 !.env.example
 *.secret.json
+src/TimeIsNow.API/appsettings.Development.json
+src/TimeIsNow.API/appsettings.Local.json
 
 # IDE and operating-system files
 .idea/
