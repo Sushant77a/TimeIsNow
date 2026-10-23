@@ -1,0 +1,14 @@
+.git
+.gitignore
+.idea
+.vscode
+.sisyphus
+logs
+.run
+**/bin
+**/obj
+**/node_modules
+client/dist
+client/test-results
+client/playwright-report
+.env
